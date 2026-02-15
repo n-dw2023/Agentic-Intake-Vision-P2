@@ -12,9 +12,9 @@ The root `package.json` script `build:vercel` runs after the client build and co
 
 ## API (Express)
 
-All `/api/*` requests are rewritten to **`/api?path=$1`** so they hit the single handler **`api/index.ts`**. That handler restores `req.url` to `/api/<path>` (e.g. `/api/study-projects`) before passing the request to the Express app from `server/dist/index.js`, so Express routing works. The build must complete so `server/dist` exists before deploy.
+All `/api/*` requests are rewritten to **`/api?path=$1`** so they hit the single handler **`api/index.ts`**. That handler restores `req.url` to `/api/<path>` (e.g. `/api/study-projects`) before passing the request to the Express app. The app is imported from **`./server-dist/index.js`** inside the `api/` folder so the function bundle is self-contained.
 
-**Why production 404s while local works:** Locally, the dev server runs Express directly and the client proxies `/api` to it. On Vercel, `api/index.ts` is a serverless function that imports `../server/dist/index.js`. Vercel’s bundler does not automatically include that path, so the function can fail to load and return 404. **`vercel.json`** therefore sets **`functions["api/index.ts"].includeFiles": "server/dist/**"`** so the server build output is included in the function deployment.
+**Build:** The **`build:vercel-api`** script (run after `npm run build -w server`) copies **`server/dist` → `api/server-dist`**. That way the serverless function has the full Express app inside `api/` and Vercel’s bundler includes it. Without this copy, the function would import from `../server/dist`, which is not included in the deployment, and you get 404 for `/api/study-projects`, `/api/workflows`, etc.
 
 ## If you still see "No Output Directory named 'dist' found"
 

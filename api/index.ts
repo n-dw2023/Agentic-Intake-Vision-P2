@@ -1,10 +1,9 @@
 /**
  * Vercel serverless entry: all /api/* are rewritten to /api?path=... so this handler receives them.
  * We restore the path so the Express app can route correctly.
- * Build must run first so server/dist exists (npm run build).
+ * Build copies server/dist → api/server-dist so this function is self-contained (see build:vercel-api).
  */
-// @ts-ignore - built output; path is correct at deploy time
-import { app } from "../server/dist/index.js";
+import { app } from "./server-dist/index.js";
 
 function handler(req: import("http").IncomingMessage, res: import("http").ServerResponse) {
   const raw = req.url || "";

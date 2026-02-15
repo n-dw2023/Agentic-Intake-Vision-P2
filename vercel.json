@@ -7,10 +7,5 @@
       "source": "/api/(.*)",
       "destination": "/api?path=$1"
     }
-  ],
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "server/dist/**"
-    }
-  }
+  ]
 }

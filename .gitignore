@@ -1,5 +1,6 @@
 node_modules/
 dist/
+api/server-dist/
 
 # Secrets and env (never commit; use .env.example as template)
 .env
