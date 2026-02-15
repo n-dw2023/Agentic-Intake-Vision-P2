@@ -1,7 +1,26 @@
 /**
- * Vercel serverless entry: forwards all requests to the Express app.
+ * Vercel serverless entry: all /api/* are rewritten to /api?path=... so this handler receives them.
+ * We restore the path so the Express app can route correctly.
  * Build must run first so server/dist exists (npm run build).
  */
 // @ts-ignore - built output; path is correct at deploy time
 import { app } from "../server/dist/index.js";
-export default app;
+
+function handler(req: import("http").IncomingMessage, res: import("http").ServerResponse) {
+  const raw = req.url || "";
+  const qIdx = raw.indexOf("?");
+  const pathOnly = qIdx >= 0 ? raw.slice(0, qIdx) : raw;
+  const query = qIdx >= 0 ? raw.slice(qIdx + 1) : "";
+  const params = new URLSearchParams(query);
+  const pathSeg = params.get("path") ?? "";
+  if (pathSeg) {
+    params.delete("path");
+    const newQs = params.toString() ? "?" + params.toString() : "";
+    req.url = "/api/" + pathSeg + newQs;
+  } else if (pathOnly === "/api" && !query) {
+    req.url = "/api";
+  }
+  return app(req, res);
+}
+
+export default handler;
