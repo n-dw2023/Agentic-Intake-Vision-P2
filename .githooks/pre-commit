@@ -1,0 +1,20 @@
+#!/bin/sh
+# Block committing any .env file except .env.example (protect API keys and secrets)
+for f in $(git diff --cached --name-only); do
+  base=$(basename "$f")
+  case "$base" in
+    .env.example) ;;
+    .env) ;;
+    .env.*)
+      echo "Blocked: '$f' looks like a secrets file. Remove from commit (use .env.example as template)."
+      exit 1
+      ;;
+  esac
+  case "$base" in
+    .env)
+      echo "Blocked: '$f' looks like a secrets file. Remove from commit (use .env.example as template)."
+      exit 1
+      ;;
+  esac
+done
+exit 0

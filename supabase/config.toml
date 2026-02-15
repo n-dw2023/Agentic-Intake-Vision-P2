@@ -1,0 +1,6 @@
+# Minimal config for Supabase CLI (link + db push to remote project).
+# See: https://supabase.com/docs/guides/cli/config
+project_id = "agent-config"
+
+[db.migrations]
+enabled = true

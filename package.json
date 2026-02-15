@@ -1,0 +1,22 @@
+{
+  "name": "agent-config",
+  "private": true,
+  "scripts": {
+    "create-user": "tsx server/scripts/create-user.ts",
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "npm run dev -w client",
+    "dev:server": "npm run dev -w server",
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
+    "test": "npm run test -w shared && npm run test -w server && npm run test -w client",
+    "lint": "npm run lint -w shared && npm run lint -w client && npm run lint -w server",
+    "db:migrate": "npx supabase db push"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "workspaces": [
+    "shared",
+    "client",
+    "server"
+  ]
+}

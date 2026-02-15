@@ -1,0 +1,28 @@
+node_modules/
+dist/
+
+# Secrets and env (never commit; use .env.example as template)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.development.local
+.env.production.local
+*.pem
+*.key
+.secret
+.secrets
+
+supabase/.temp/
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Writable data (e.g. agent-prompts.json overrides; written from server at cwd)
+data/
