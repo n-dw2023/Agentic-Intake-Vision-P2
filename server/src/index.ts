@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({ ok: true, timestamp: new Date().toISOString() });
 });
 
 app.use("/api/workflows", workflowsRouter);
