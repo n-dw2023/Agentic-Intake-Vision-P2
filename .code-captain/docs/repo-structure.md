@@ -31,8 +31,9 @@ Agent-Config/
 ├── .vscode/
 │   └── settings.json
 │
-├── api/                                # Vercel serverless entry
-│   └── index.ts                        # forwards /api/* to Express (server-dist)
+├── api/                                # Vercel serverless (catch-all)
+│   ├── [[...path]].ts                  # catch-all: /api and /api/* → Express (server-dist)
+│   └── server-dist.d.ts                # type declaration for server-dist (optional)
 │
 ├── client/                             # Vite + React front-end
 │   ├── index.html
@@ -127,7 +128,7 @@ Agent-Config/
 - **`client/dist/`** — Vite build output (SPA).
 - **`server/dist/`** — Compiled Express app (Node).
 - **`shared/dist/`** — Compiled shared package.
-- **`api/server-dist/`** — Copy of `server/dist` used by `api/index.ts` on Vercel (created by `build:vercel-api`).
+- **`api/server-dist/`** — Copy of `server/dist` used by the API catch-all on Vercel (created by `build:vercel-api`).
 
 ## Env files (not committed)
 
