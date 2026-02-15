@@ -1,7 +1,13 @@
 import { config } from "dotenv";
-import { resolve } from "path";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
-// Load .env: try cwd (e.g. repo root when running npm run dev from root), then parent (when cwd is server/)
+const __dirname = dirname(fileURLToPath(import.meta.url));
+// Repo root: server/src/env.ts -> ../../ = repo root
+const repoRoot = resolve(__dirname, "..", "..");
+// Load .env: repo root first (Supabase, OpenAI, etc.), then cwd
+config({ path: resolve(repoRoot, ".env") });
+config({ path: resolve(repoRoot, ".env.local") });
 config({ path: resolve(process.cwd(), ".env") });
 config({ path: resolve(process.cwd(), ".env.local") });
 config({ path: resolve(process.cwd(), "..", ".env") });

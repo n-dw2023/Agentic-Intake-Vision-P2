@@ -34,7 +34,7 @@ npm run build -w shared
 
 ## Testing the UI locally
 
-1. **Env:** Ensure `.env` (or `.env.local`) has `OPENAI_API_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`. The client uses the user created by `npm run create-user` by default so workflows persist.
+1. **Env:** Ensure `.env` (or `.env.local`) has `OPENAI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_JWT_SECRET`. Sign in with a Supabase Auth user (e.g. one created via `npm run create-user` or the Dashboard) so workflows are scoped to that user.
 2. **Ports:** The API must run on port 3000 (client proxies `/api` there). If 3000 is in use, stop the other process or set `PORT=3001` and update `client/vite.config.ts` proxy target to `http://localhost:3001`.
 3. From the repo root run:
    ```bash
@@ -67,5 +67,5 @@ Runs validation tests in `shared`.
 
 ## Environment
 
-- **Server:** `PORT` (default 3000). **Generate endpoint** needs `OPENAI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Entry gate needs `APP_ENTRY_PASSWORD`. Send **x-user-id** (any UUID for dev) on API requests until Story 6 adds auth.
+- **Server:** `PORT` (default 3000). **Generate endpoint** needs `OPENAI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. **Auth:** All `/api/*` (except `/api/health`) require Supabase JWT; set `SUPABASE_JWT_SECRET` (Dashboard → API → JWT Secret). The client sends `Authorization: Bearer <token>` and `x-user-id` from the signed-in user; no app-level password. See [.code-captain/docs/auth-supabase.md](.code-captain/docs/auth-supabase.md).
 - **Never commit** `.env` or `.env.local` — use [.code-captain/docs/github-and-secrets.md](.code-captain/docs/github-and-secrets.md) for GitHub setup and protecting API keys and secrets.

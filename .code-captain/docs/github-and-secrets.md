@@ -8,7 +8,7 @@ Use this when connecting this project to GitHub and whenever you add new env var
 
 ## Never commit these
 
-- **`.env`** — Local env (Supabase, OpenAI, `APP_ENTRY_PASSWORD`, etc.)
+- **`.env`** — Local env (Supabase, OpenAI, etc.)
 - **`.env.local`**, **`.env.development`**, **`.env.production`**, any **`.env.*.local`**
 - **Keys/certs**: `*.pem`, `*.key`, `.secret`, `.secrets`
 - **Real values** in **`.env.example`** — keep it as a template with placeholders only
@@ -63,18 +63,17 @@ git config core.hooksPath .githooks
 ### After push
 
 - **Collaborators:** Clone the repo and create their own `.env` from `.env.example`; never commit `.env`.
-- **CI/CD (later):** Use [GitHub Actions secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) for `OPENAI_API_KEY`, `SUPABASE_*`, `APP_ENTRY_PASSWORD`, etc.
+- **CI/CD (later):** Use [GitHub Actions secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) for `OPENAI_API_KEY`, `SUPABASE_*`, etc.
 
 ## Env vars this project uses
 
 | Variable | Used by | Purpose |
 |----------|---------|---------|
 | `OPENAI_API_KEY` | server | Workflow generation |
-| `SUPABASE_URL` | server | Supabase project URL |
-| `SUPABASE_ANON_KEY` | server | Supabase anon key |
+| `SUPABASE_URL` | server, client (via Vite define) | Supabase project URL |
+| `SUPABASE_ANON_KEY` | server, client (via Vite define) | Supabase anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | server | Supabase service role (privileged) |
-| `APP_ENTRY_PASSWORD` | server | Entry gate password |
+| `SUPABASE_JWT_SECRET` | server | Verify Bearer tokens (Dashboard → API → JWT Secret) |
 | `PORT` | server | Optional; default 3000 |
-| `VITE_USER_ID` | client (build) | Optional; dev user for x-user-id |
 
-`VITE_*` is baked into the client bundle at build time — use only for non-secret, public config. Do not put secrets in `VITE_*`.
+Entry gate uses Supabase Auth (email + password). No `VITE_*` auth vars; client gets URL/anon key from `.env` via Vite config.

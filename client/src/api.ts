@@ -1,22 +1,29 @@
 const API_BASE = "/api";
-// Use created dev user so generate/refine/accept persist when testing locally. Story 6 will use Supabase Auth.
-const USER_ID =
-  (import.meta.env.VITE_USER_ID as string | undefined) ||
-  "02cf1a07-7c3d-438a-852f-39e8ffd31485";
 
 import type { WorkflowDefinition, UiSpec } from "../../shared/src/index.js";
 export type { WorkflowDefinition, UiSpec };
 
-const headers = () => ({
-  "Content-Type": "application/json",
-  "x-user-id": USER_ID,
-});
-
-// --- Entry gate auth: credentials + 401 → show gate ---
+// --- Supabase Auth: session drives Authorization + x-user-id ---
+export type AuthSession = { accessToken: string; userId: string } | null;
+let authSession: AuthSession = null;
 let unauthorizedHandler: (() => void) | null = null;
+
+export function setAuthSession(session: AuthSession) {
+  authSession = session;
+}
+
 export function setUnauthorizedHandler(handler: (() => void) | null) {
   unauthorizedHandler = handler;
 }
+
+const headers = (): HeadersInit => {
+  const h: HeadersInit = { "Content-Type": "application/json" };
+  if (authSession) {
+    (h as Record<string, string>)["Authorization"] = `Bearer ${authSession.accessToken}`;
+    (h as Record<string, string>)["x-user-id"] = authSession.userId;
+  }
+  return h;
+};
 
 function getRequestUrl(input: RequestInfo | URL): string {
   if (typeof input === "string") return input;
@@ -27,36 +34,14 @@ function getRequestUrl(input: RequestInfo | URL): string {
 function fetchWithAuth(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   return fetch(input, { ...init, credentials: "include" }).then((res) => {
     const url = getRequestUrl(input);
-    const isAuthEndpoint = url.includes("/api/auth/login") || url.includes("/api/auth/session");
-    if (res.status === 401 && !isAuthEndpoint) {
+    if (res.status === 401 && !url.includes("/api/health")) {
       unauthorizedHandler?.();
     }
     return res;
   });
 }
 
-export async function login(password: string): Promise<{ ok: true } | { error: string }> {
-  const res = await fetchWithAuth(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
-    credentials: "include",
-  });
-  if (res.ok) return { ok: true };
-  const data = await res.json().catch(() => ({}));
-  return { error: (data.error as string) || "Unauthorized" };
-}
-
-export async function logout(): Promise<void> {
-  await fetchWithAuth(`${API_BASE}/auth/logout`, { method: "POST" });
-}
-
-export async function checkSession(): Promise<{ ok: true } | { ok: false }> {
-  const res = await fetchWithAuth(`${API_BASE}/auth/session`);
-  return res.ok ? { ok: true } : { ok: false };
-}
-
-// --- API functions use fetchWithAuth so cookies are sent and 401 shows gate ---
+// --- API functions use fetchWithAuth; headers() include Bearer + x-user-id when session set ---
 
 export async function listWorkflows(): Promise<{
   workflows: { id: string; name: string; createdAt: string; updatedAt: string }[];
@@ -199,9 +184,12 @@ export async function ingestProtocolFile(file: File): Promise<{
 }> {
   const form = new FormData();
   form.append("file", file);
+  const authHeaders: Record<string, string> = authSession
+    ? { Authorization: `Bearer ${authSession.accessToken}`, "x-user-id": authSession.userId }
+    : {};
   const res = await fetchWithAuth(`${API_BASE}/protocols/ingest`, {
     method: "POST",
-    headers: { "x-user-id": USER_ID },
+    headers: authHeaders,
     body: form,
   });
   if (!res.ok) {
