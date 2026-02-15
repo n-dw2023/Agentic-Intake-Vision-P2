@@ -10,6 +10,10 @@ const env = loadEnv(process.env.MODE ?? "development", envDir, "");
 
 export default defineConfig({
   envDir,
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+  },
   plugins: [react(), tailwindcss()],
   define: {
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(env.SUPABASE_URL ?? ""),
