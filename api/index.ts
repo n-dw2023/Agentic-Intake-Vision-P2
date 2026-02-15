@@ -3,6 +3,7 @@
  * We restore req.url to /api/<path> and delegate to the Express app in api/server-dist.
  * Build step build:vercel-api copies server/dist → api/server-dist so the bundle is self-contained.
  */
+// @ts-expect-error — server-dist is created at build time (build:vercel-api); no types at compile time
 import { app } from "./server-dist/index.js";
 
 function handler(req: import("http").IncomingMessage, res: import("http").ServerResponse) {
