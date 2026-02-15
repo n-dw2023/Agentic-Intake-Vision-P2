@@ -11,7 +11,6 @@ import { protocolsRouter } from "./routes/protocols.js";
 import { studyProjectsRouter } from "./routes/studyProjects.js";
 import { promptsRouter } from "./routes/prompts.js";
 
-const PORT = process.env.PORT ?? 3000;
 const app = express();
 
 // Allow large document payloads for POST .../run (protocol uploads)
@@ -40,6 +39,5 @@ app.use((_req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+export { app };
+export const PORT = process.env.PORT ?? 3000;
