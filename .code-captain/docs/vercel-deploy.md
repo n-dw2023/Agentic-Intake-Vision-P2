@@ -2,21 +2,21 @@
 
 ## Output directory
 
-The app is a monorepo: the **client** (Vite) builds to **`client/dist`**. `vercel.json` sets:
+The build copies the client output to a root **`dist`** so Vercel finds it:
 
-- **outputDirectory:** `client/dist`
-- **buildCommand:** `npm run build` (builds shared → server → client)
+- **buildCommand:** `npm run build` (builds shared → server → client, then copies `client/dist` → `dist`)
+- **outputDirectory:** `dist`
 - **installCommand:** `npm install`
 
-## If you see "No Output Directory named 'dist' found"
+The root `package.json` script `build:vercel` runs after the client build and copies `client/dist` into `dist/` at the repo root.
 
-1. **Use the repo root as the project root**  
-   In Vercel: **Project Settings → General → Root Directory** should be **empty** (or `.`).  
-   Do **not** set Root Directory to `client`. If it’s `client`, Vercel looks for `dist` inside `client` and can’t find `client/dist` from the repo root.
+## If you still see "No Output Directory named 'dist' found"
 
-2. **Let vercel.json set the output**  
-   In **Project Settings → Build & Development Settings**, leave **Output Directory** empty so `vercel.json`’s `outputDirectory: "client/dist"` is used.  
-   If you set Output Directory to `dist`, change it to **`client/dist`** or clear it.
+1. **Use the repo root**  
+   **Project Settings → General → Root Directory** should be **empty** (or `.`).
+
+2. **Use vercel.json**  
+   In **Build & Development Settings**, leave **Output Directory** empty so `vercel.json`’s `outputDirectory: "dist"` is used.
 
 3. **Ensure the build succeeds**  
-   If the build fails (e.g. missing env, or shared package not built), `client/dist` is never created. Check the build logs and set required env vars (e.g. `SUPABASE_URL`, `OPENAI_API_KEY`) in **Project Settings → Environment Variables**.
+   If the build fails, `dist` is never created. Check build logs and set env vars (e.g. `SUPABASE_URL`, `OPENAI_API_KEY`) in **Project Settings → Environment Variables**.
