@@ -11,7 +11,10 @@
     "isolatedModules": true,
     "composite": true,
     "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] }
+    "paths": {
+      "@/*": ["src/*"],
+      "shared": ["../shared/src"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "../shared" }]

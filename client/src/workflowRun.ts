@@ -11,7 +11,7 @@ export async function getDocumentText(
   values: FormValues
 ): Promise<string | null> {
   const fields = uiSpec?.form?.fields ?? [];
-  const fileField = fields.find((f) => f.type === "file");
+  const fileField = fields.find((f: { id: string; type: string }) => f.type === "file");
   if (fileField) {
     const v = values[fileField.id];
     if (v instanceof File) {
@@ -19,7 +19,7 @@ export async function getDocumentText(
     }
     return null;
   }
-  const textField = fields.find((f) => f.type === "text");
+  const textField = fields.find((f: { id: string; type: string }) => f.type === "text");
   if (textField) {
     const v = values[textField.id];
     if (typeof v === "string" && v.trim()) return v.trim();

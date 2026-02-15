@@ -26,7 +26,7 @@ export function DynamicForm({ uiSpec, values, onChange, disabled, errors = {} }:
 
   return (
     <div className="dynamic-form">
-      {fields.map((field) => {
+      {fields.map((field: { id: string; type: string; label: string; required?: boolean; options?: string[] }) => {
         const type = ALLOWED_FIELD_TYPES.includes(field.type as (typeof ALLOWED_FIELD_TYPES)[number])
           ? field.type
           : "text";
@@ -88,7 +88,7 @@ export function DynamicForm({ uiSpec, values, onChange, disabled, errors = {} }:
                     <SelectItem value="">
                       Select…
                     </SelectItem>
-                    {(field.options ?? []).map((opt) => (
+                    {(field.options ?? []).map((opt: string) => (
                       <SelectItem key={opt} value={opt}>
                         {opt}
                       </SelectItem>

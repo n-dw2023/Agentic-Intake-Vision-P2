@@ -564,7 +564,7 @@ function App() {
                   </button>
                 </div>
                 <h2>Workflow</h2>
-                <p>{workflow.agents.length} agent(s): {workflow.agents.map((a) => a.name).join(", ")}</p>
+                <p>{workflow.agents.length} agent(s): {workflow.agents.map((a: { id: string; name: string }) => a.name).join(", ")}</p>
                 <div className="workflow-meta-row">
                   <span>Version {versionId?.slice(0, 8) ?? "—"}</span>
                   {versions.length > 1 && (
@@ -593,7 +593,7 @@ function App() {
                 </button>
                 {showAgentPrompts && (
                   <div className="workflow-prompts" role="region" aria-label="Agent prompts">
-                    {workflow.agents.map((agent) => (
+                    {workflow.agents.map((agent: { id: string; name: string; systemPrompt: string }) => (
                       <div key={agent.id} className="workflow-prompt-block">
                         <div className="workflow-prompt-name">{agent.name}</div>
                         <pre className="workflow-prompt-text">{agent.systemPrompt}</pre>

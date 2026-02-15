@@ -4,8 +4,8 @@ const USER_ID =
   (import.meta.env.VITE_USER_ID as string | undefined) ||
   "02cf1a07-7c3d-438a-852f-39e8ffd31485";
 
-export type WorkflowDefinition = import("shared").WorkflowDefinition;
-export type UiSpec = import("shared").UiSpec;
+import type { WorkflowDefinition, UiSpec } from "../../shared/src/index.js";
+export type { WorkflowDefinition, UiSpec };
 
 const headers = () => ({
   "Content-Type": "application/json",

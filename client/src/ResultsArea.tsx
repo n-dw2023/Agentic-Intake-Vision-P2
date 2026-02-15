@@ -96,7 +96,7 @@ export function ResultsArea({ uiSpec, results, loading, error, errorDetails, onR
       )}
       {!loading && (
         <div className="results-sections">
-          {sections.map((section) => {
+          {sections.map((section: { id: string; label: string; agentIdOrOutputLabel: string }) => {
             const content = byLabel?.get(section.agentIdOrOutputLabel) ?? null;
             return (
               <section
