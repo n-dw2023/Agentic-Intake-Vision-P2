@@ -10,6 +10,10 @@ The build copies the client output to a root **`dist`** so Vercel finds it:
 
 The root `package.json` script `build:vercel` runs after the client build and copies `client/dist` into `dist/` at the repo root.
 
+## API (Express)
+
+All `/api/*` requests are handled by the Express app via a catch-all: **`api/[[...path]].ts`** imports `server/dist/index.js`. The rewrite in `vercel.json` sends `/api/(.*)` to `/api/$1` so the full path is preserved and Express routes (e.g. `/api/study-projects`, `/api/workflows`) match correctly. The build must complete so `server/dist` exists before deploy.
+
 ## If you still see "No Output Directory named 'dist' found"
 
 1. **Use the repo root**  
