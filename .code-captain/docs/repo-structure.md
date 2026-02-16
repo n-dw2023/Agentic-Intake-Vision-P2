@@ -31,9 +31,8 @@ Agent-Config/
 ├── .vscode/
 │   └── settings.json
 │
-├── api/                                # Vercel serverless (catch-all)
-│   ├── [[...path]].ts                  # catch-all: /api and /api/* → Express (server-dist)
-│   └── server-dist.d.ts                # type declaration for server-dist (optional)
+├── api/                                # Vercel serverless (catch-all only)
+│   └── [[...path]].ts                  # catch-all: /api and /api/* → Express (server-dist)
 │
 ├── client/                             # Vite + React front-end
 │   ├── index.html
@@ -64,6 +63,8 @@ Agent-Config/
 │
 ├── server/                             # Express API (Node)
 │   ├── package.json
+│   ├── types/
+│   │   └── server-dist.d.ts            # type declaration for api/server-dist (used by api/[[...path]].ts)
 │   ├── src/
 │   │   ├── index.ts                   # Express app (routes, auth middleware)
 │   │   ├── start.ts                   # local dev: app.listen(PORT)

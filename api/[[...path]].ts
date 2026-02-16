@@ -3,7 +3,7 @@
  * No rewrite with ?path= needed; req.url is already the full path (e.g. /api/study-projects).
  * Build step build:vercel-api copies server/dist → api/server-dist so the bundle is self-contained.
  */
-// @ts-expect-error — server-dist is created at build time (build:vercel-api); no types at compile time
+/// <reference path="../server/types/server-dist.d.ts" />
 import { app } from "./server-dist/index.js";
 
 export default function handler(req: import("http").IncomingMessage, res: import("http").ServerResponse) {
