@@ -1,6 +1,12 @@
 # Vercel deployment
 
-This project deploys to Vercel as a **single project**: a Vite SPA served from **dist/** and a Node serverless function that runs the Express app. The API uses a **catch-all** so `/api` and `/api/*` are routed automatically with no rewrite.
+This project deploys to Vercel as a **single project**: a Vite SPA served from **dist/** and a Node serverless function that runs the Express app. The API uses a **catch-all** so `/api` and `/api/*` are routed automatically with no rewrite. Full conventions and rationale: [.code-captain/specs/2026-02-15-vercel-api-best-practices/spec.md](../specs/2026-02-15-vercel-api-best-practices/spec.md).
+
+## Single source of truth
+
+- **Root Directory** — Must be the repo root (e.g. `.` or blank in Vercel Project Settings). Do not set Root Directory to `client/` or any subfolder.
+- **Output Directory** — In Project Settings → Build & Development Settings, leave **Output Directory** blank. This config uses `vercel.json` builds and routes; an Output Directory override can force static-only mode and break API routing.
+- **Validation** — After deploy: `/index.html` and `/` load the SPA; `/api/health` and `/api/routes` return JSON; at least one real route (e.g. `/api/study-projects`) responds (200 or 401), not 404.
 
 ## What vercel.json does
 
@@ -37,13 +43,14 @@ Root `package.json` scripts:
 - **build:vercel-api** — Copies `server/dist` → `api/server-dist`.
 - **build:vercel** — Copies `client/dist` → `dist`.
 
-## Health endpoint
+## Health and routes endpoints
 
 - **GET /api/health** returns JSON: `{ "ok": true, "timestamp": "<ISO string>" }`.
-- The catch-all handler responds to `/api/health` **before** loading Express, so you can confirm the function is invoked even if the Express bundle fails.
+- **GET /api/routes** returns a JSON array of known route prefixes (e.g. `["/api/health", "/api/workflows", "/api/study-projects", ...]`). Handled in the catch-all before loading Express so it works even if the Express bundle fails.
+- The catch-all responds to both **before** loading Express, so you can confirm the function is invoked even if the Express bundle fails.
 - The Express app also exposes **GET /api/health** with the same shape when the full app is loaded.
 
-Use **/api/health** to validate that the API function is deployed and reachable.
+Use **/api/health** and **/api/routes** to validate that the API function is deployed and reachable.
 
 ## How to validate
 
@@ -52,8 +59,11 @@ After deploying:
 1. **Vercel dashboard** — In the deployment, open the **Functions** tab. You should see **one** function: **api/[[...path]]**. If you see extra "functions" (e.g. server-dist.d.ts), type declarations belong in **server/types/**; if the function is missing, check build or root directory.
 2. **SPA** — Visit **`/`** and **`/index.html`**; both should serve the app. If `/index.html` works but `/` 404s, the fallback is wrong (`dest: "/index.html"`). If `/index.html` 404s, `dist/` or static config is wrong.
 3. **Assets** — Open any asset URL from the HTML (e.g. `/assets/index-….js`); should return 200.
-4. **Health** — Open `https://<your-deployment>/api/health` in a browser or with `curl`. You should get `200` and JSON `{ "ok": true, "timestamp": "..." }`. If you get 404, the catch-all is not deployed or not receiving the request.
-5. **API route** — Call a known route, e.g. `GET https://<your-deployment>/api/study-projects` with a valid `Authorization: Bearer <token>`. It should return 200 (or 401 if auth is missing), not 404.
+4. **Health** — Open `https://<your-deployment>/api/health`. You should get `200` and JSON `{ "ok": true, "timestamp": "..." }`. If you get 404, the catch-all is not deployed or not receiving the request.
+5. **Routes list** — Open `https://<your-deployment>/api/routes`. You should get `200` and a JSON array of route prefixes.
+6. **API route** — Call a known route, e.g. `GET https://<your-deployment>/api/study-projects` with a valid `Authorization: Bearer <token>`. It should return 200 (or 401 if auth is missing), not 404.
+
+**Local build verification:** Run `npm run build && npm run smoke:vercel` to ensure `dist/index.html` and `api/server-dist/index.js` exist after build.
 
 ## Common pitfalls
 
@@ -75,5 +85,7 @@ After deploying:
 ## Quick “how to verify” checklist
 
 - [ ] **Vercel deployment** shows a Function for **api/[[...path]]** (or similar) in the deployment’s Functions tab.
+- [ ] **/** and **/index.html** load the SPA.
 - [ ] **GET /api/health** in production returns **200** and JSON `{ "ok": true, "timestamp": "..." }`.
-- [ ] A known route such as **GET /api/study-projects** (with valid auth headers) no longer returns **404** (e.g. 200 with data or 401 if unauthenticated).
+- [ ] **GET /api/routes** in production returns **200** and a JSON array of route prefixes.
+- [ ] A known route such as **GET /api/study-projects** (with valid auth headers) responds (200 or 401), not 404.
