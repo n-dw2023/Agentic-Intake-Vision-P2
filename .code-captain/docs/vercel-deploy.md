@@ -13,9 +13,9 @@ This project deploys to Vercel as a **single project**: a Vite SPA served from *
 
 - **routes**
   1. **handle: filesystem** — Serve static files from the build output when the path matches a file.
-  2. **/(.*)** → **/dist/index.html** — SPA fallback.
+  2. **/(.*)** → **/index.html** — SPA fallback.
 
-The client is built with **base: "/dist/"** in production (`client/vite.config.ts`) so that asset URLs in `index.html` (e.g. `/dist/assets/...`) match the static paths under `dist/`. Without this, the browser would request `/assets/...`, which would 404 because files are served at `/dist/assets/...`.
+With **@vercel/static** and `dist/**`, Vercel serves the contents of `dist/` at the **site root**. So `dist/index.html` is served as **`/index.html`**, and `dist/assets/...` as **`/assets/...`**. The fallback must be **`/index.html`** (not `/dist/index.html`). The client uses **base: "/"** so asset URLs in the built HTML match.
 
 No `/api` rewrite is needed: the catch-all ensures all `/api` and `/api/*` requests hit the function.
 
@@ -49,9 +49,11 @@ Use **/api/health** to validate that the API function is deployed and reachable.
 
 After deploying:
 
-1. **Vercel dashboard** — In the deployment, open the **Functions** tab. You should see a function for **api/[[...path]]** (or similar). If it’s missing, the build or root directory is wrong.
-2. **Health** — Open `https://<your-deployment>/api/health` in a browser or with `curl`. You should get `200` and JSON `{ "ok": true, "timestamp": "..." }`. If you get 404, the catch-all is not deployed or not receiving the request.
-3. **API route** — Call a known route, e.g. `GET https://<your-deployment>/api/study-projects` with a valid `Authorization: Bearer <token>`. It should return 200 (or 401 if auth is missing), not 404.
+1. **Vercel dashboard** — In the deployment, open the **Functions** tab. You should see **one** function: **api/[[...path]]**. If you see extra "functions" (e.g. server-dist.d.ts), type declarations belong in **server/types/**; if the function is missing, check build or root directory.
+2. **SPA** — Visit **`/`** and **`/index.html`**; both should serve the app. If `/index.html` works but `/` 404s, the fallback is wrong (`dest: "/index.html"`). If `/index.html` 404s, `dist/` or static config is wrong.
+3. **Assets** — Open any asset URL from the HTML (e.g. `/assets/index-….js`); should return 200.
+4. **Health** — Open `https://<your-deployment>/api/health` in a browser or with `curl`. You should get `200` and JSON `{ "ok": true, "timestamp": "..." }`. If you get 404, the catch-all is not deployed or not receiving the request.
+5. **API route** — Call a known route, e.g. `GET https://<your-deployment>/api/study-projects` with a valid `Authorization: Bearer <token>`. It should return 200 (or 401 if auth is missing), not 404.
 
 ## Common pitfalls
 
@@ -59,12 +61,14 @@ After deploying:
 - **outputDirectory only** — Using only `outputDirectory: "dist"` without explicit **builds** for the API can lead to the API not being deployed as a function. The config in this repo uses **builds** and **routes** so both static and the API are defined.
 - **Catch-all** — Using **api/[[...path]].ts** avoids rewrite/`?path=` issues: Vercel routes `/api` and `/api/*` to the function and `req.url` is already the full path.
 - **Env vars** — Set **SUPABASE_URL**, **SUPABASE_JWT_SECRET** (or **SUPABASE_ANON_KEY** if used), **OPENAI_API_KEY**, etc. in **Project Settings → Environment Variables**. Missing env can cause the function or Express to fail after health.
-- **SPA 404 for JS/CSS** — If the root document loads but scripts/styles return 404, the client build likely used the default base `/`. Static files live under `/dist/`, so the client must be built with **base: "/dist/"** (see `client/vite.config.ts`). Do not remove this without adjusting routes or static output.
+- **SPA 404 for `/`** — If `/` 404s but `/index.html` works, the fallback route is wrong: it must be **`dest: "/index.html"`**, not `/dist/index.html`. With `dist/**` and `@vercel/static`, files are served at the root.
+- **Extra “functions” in Vercel** — Only **api/[[...path]].ts** should be a function. Do not use `api/**/*.ts` (that can pick up other files). Type declarations must live **outside** `api/` (e.g. **server/types/server-dist.d.ts**) so Vercel does not treat them as functions.
+- **Output Directory in UI** — In Project Settings → Build & Development Settings, leave **Output Directory** blank. If set (e.g. to `dist`), it can force static-only mode and break custom routing.
 
 ## Local vs production
 
 - **Local:** `npm run dev` runs the Vite dev server (proxies `/api` to the Express server) and the Express server on port 3000. No `vercel.json` routes; the app talks to Express directly.
-- **Production:** The browser gets the SPA and static assets from `dist/`; `/api` and `/api/*` are routed by Vercel to the **api/[[...path]].ts** catch-all, which loads Express from `api/server-dist` and handles the request.
+- **Production:** The browser gets the SPA at `/` (fallback to `/index.html`) and static assets at `/assets/...` (from `dist/` at root); `/api` and `/api/*` are routed by Vercel to the **api/[[...path]].ts** catch-all, which loads Express from `api/server-dist` and handles the request.
 
 ---
 
