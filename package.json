@@ -12,7 +12,9 @@
     "db:migrate": "npx supabase db push",
     "build:vercel": "node -e \"const fs=require('fs');const p='dist';fs.existsSync(p)&&fs.rmSync(p,{recursive:true});fs.cpSync('client/dist',p,{recursive:true});\"",
     "build:vercel-api": "node -e \"const fs=require('fs');const d='api/server-dist';fs.existsSync(d)&&fs.rmSync(d,{recursive:true});fs.cpSync('server/dist',d,{recursive:true});\"",
-    "smoke:vercel": "node -e \"const fs=require('fs');const a='dist/index.html',b='api/server-dist/index.js';const ok=fs.existsSync(a)&&fs.existsSync(b);if(!ok){console.error('smoke:vercel failed');if(!fs.existsSync(a))console.error('  missing: '+a);if(!fs.existsSync(b))console.error('  missing: '+b);process.exit(1);}\""
+    "smoke:vercel": "node -e \"const fs=require('fs');const a='dist/index.html',b='api/server-dist/index.js';const ok=fs.existsSync(a)&&fs.existsSync(b);if(!ok){console.error('smoke:vercel failed');if(!fs.existsSync(a))console.error('  missing: '+a);if(!fs.existsSync(b))console.error('  missing: '+b);process.exit(1);}\"",
+    "preview": "vercel dev",
+    "preview:static": "npx serve dist -p 4173"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

@@ -42,6 +42,23 @@ export default function handler(req: import("http").IncomingMessage, res: import
     return;
   }
 
-  // All other /api/* requests: forward to Express with req.url unchanged (Express is mounted at /api)
-  return app(req, res);
+  // Only forward paths under /api (normalize: some platforms may pass path without prefix)
+  const pathname = url.split("?")[0] || "";
+  if (!pathname.startsWith("/api")) {
+    sendJson(res, 404, { error: "Not Found", path: pathname });
+    return;
+  }
+
+  // Forward to Express with req.url unchanged (Express routes are mounted at /api)
+  try {
+    return app(req, res);
+  } catch (err) {
+    if (process.env.DEBUG_API === "1") {
+      console.error("[api] Express error", err);
+    }
+    sendJson(res, 503, {
+      error: "API temporarily unavailable",
+      timestamp: new Date().toISOString(),
+    });
+  }
 }

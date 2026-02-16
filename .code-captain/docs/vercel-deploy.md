@@ -8,13 +8,27 @@ This project deploys to Vercel as a **single project**: a Vite SPA served from *
 - **Output Directory** — In Project Settings → Build & Development Settings, leave **Output Directory** blank. This config uses `vercel.json` builds and routes; an Output Directory override can force static-only mode and break API routing.
 - **Validation** — After deploy: `/index.html` and `/` load the SPA; `/api/health` and `/api/routes` return JSON; at least one real route (e.g. `/api/study-projects`) responds (200 or 401), not 404.
 
+## Production verification
+
+After every production deploy, run through this checklist. Full spec: [2026-02-15-reimplement-vercel-production/spec.md](../specs/2026-02-15-reimplement-vercel-production/spec.md).
+
+- [ ] **Vercel Project Settings:** Root Directory = repo root (`.` or blank). Output Directory = **blank**.
+- [ ] **Functions tab:** One function only: **api/[[...path]]** (no extra functions from other files under api/).
+- [ ] **SPA:** `https://<deployment>/` and `https://<deployment>/index.html` load the app.
+- [ ] **Assets:** A built asset URL (e.g. `/assets/index-….js`) returns 200.
+- [ ] **GET /api/health:** Returns 200 and JSON `{ "ok": true, "timestamp": "..." }`.
+- [ ] **GET /api/routes:** Returns 200 and JSON array of route prefixes.
+- [ ] **One real route:** e.g. `GET /api/study-projects` with valid auth returns 200 or 401 (not 404).
+
+**Local before push:** `npm run build && npm run smoke:vercel` must pass.
+
 ## What vercel.json does
 
 - **buildCommand** / **installCommand**  
   Run before the build phase. `npm run build` must produce both `dist/` and `api/server-dist/` (see below).
 
 - **builds**
-  - **api/[[...path]].ts** with **@vercel/node** — Catch-all API function. Vercel routes `/api` and `/api/*` to it; `req.url` is already the full path (e.g. `/api/study-projects`). The handler imports the Express app from `./server-dist/index.js` (copied by `build:vercel-api`).
+  - **api/[[...path]].ts** with **@vercel/node** — Catch-all API function. `config.includeFiles: ["api/server-dist/**"]` ensures the server bundle is deployed with the function. Vercel routes `/api` and `/api/*` to it; `req.url` is the full path (e.g. `/api/study-projects`). The handler imports the Express app from `./server-dist/index.js` (copied by `build:vercel-api`).
   - **dist/** with **@vercel/static** — Static assets (CDN).
 
 - **routes**
@@ -64,6 +78,26 @@ After deploying:
 6. **API route** — Call a known route, e.g. `GET https://<your-deployment>/api/study-projects` with a valid `Authorization: Bearer <token>`. It should return 200 (or 401 if auth is missing), not 404.
 
 **Local build verification:** Run `npm run build && npm run smoke:vercel` to ensure `dist/index.html` and `api/server-dist/index.js` exist after build.
+
+## Test the build locally
+
+After `npm run build` you can test the built app in two ways:
+
+1. **Smoke only (no server)**  
+   `npm run smoke:vercel` — Confirms build artifacts exist. Does not run the app.
+
+2. **Full local test (SPA + API, like production)**  
+   From the **repo root**, run:
+   ```bash
+   npm run build && vercel dev
+   ```
+   (Requires [Vercel CLI](https://vercel.com/docs/cli): `npm i -g vercel`.)  
+   `vercel dev` serves your built `dist/` and runs the `api/[[...path]]` function locally so `/` and `/api/*` behave like production. Open the URL it prints (e.g. `http://localhost:3000`).
+
+3. **SPA only (no API)**  
+   `npx serve dist -p 4173` — Serves the built SPA at `http://localhost:4173`. API calls to `/api` will 404 because there is no server; use this only to check static build/UI.
+
+**Recommendation:** Use `npm run build && vercel dev` to test the full stack before pushing.
 
 ## Common pitfalls
 
