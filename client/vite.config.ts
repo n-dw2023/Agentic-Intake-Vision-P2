@@ -8,8 +8,9 @@ import { loadEnv } from "vite";
 const envDir = path.resolve(__dirname, "..");
 const env = loadEnv(process.env.MODE ?? "development", envDir, "");
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   envDir,
+  base: command === "build" ? "/dist/" : "/",
   build: {
     outDir: "dist",
     emptyOutDir: true,
@@ -33,4 +34,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
